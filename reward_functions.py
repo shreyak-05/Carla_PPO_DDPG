@@ -1,6 +1,5 @@
 import numpy as np
 from CarlaEnv.wrappers import angle_diff, vector
-
 low_speed_timer = 0
 max_distance    = 3.0  # Max distance from center before terminating
 target_speed    = 20.0 # kmh
