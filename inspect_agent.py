@@ -7,7 +7,6 @@ import gym
 import numpy as np
 import argparse
 from PIL import Image, ImageTk
-
 from ppo import PPO
 from vae.models import MlpVAE, ConvVAE
 from vae_common import preprocess_frame, load_vae
