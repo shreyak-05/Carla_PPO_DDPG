@@ -6,8 +6,7 @@ from vae.models import ConvVAE, MlpVAE
 def load_vae(model_dir, z_dim=None, model_type=None):
     """
         Loads and returns a pretrained VAE
-    """
-    
+    """  
     # Parse z_dim and model_type from name if None
     if z_dim is None: z_dim = int(re.findall("zdim(\d+)", model_dir)[0])
     if model_type is None: model_type = "mlp" if "mlp" in model_dir else "cnn"
