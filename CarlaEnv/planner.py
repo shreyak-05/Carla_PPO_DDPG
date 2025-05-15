@@ -8,7 +8,7 @@ from agents.navigation.local_planner import RoadOption
 from agents.navigation.global_route_planner import GlobalRoutePlanner
 from agents.navigation.global_route_planner_dao import GlobalRoutePlannerDAO
 from agents.tools.misc import vector
-
+ 
 
 def compute_route_waypoints(map, start_waypoint, end_waypoint, resolution=5.0, plan=None, max_steps=2000):
     current_waypoint = start_waypoint
