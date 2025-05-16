@@ -1,4 +1,6 @@
 import os
+os.environ["CARLA_ROOT"] = r"C:\Users\Smith\Desktop\Carla\WindowsNoEditor"
+
 import shutil
 import subprocess
 
@@ -71,15 +73,15 @@ class CarlaDataCollector:
             if "CARLA_ROOT" not in os.environ:
                 raise Exception("${CARLA_ROOT} has not been set!")
             dist_dir = os.path.join(os.environ["CARLA_ROOT"], "Dist")
-            if not os.path.isdir(dist_dir):
-                raise Exception("Expected to find directory \"Dist\" under ${CARLA_ROOT}!")
-            sub_dirs = [os.path.join(dist_dir, sub_dir) for sub_dir in os.listdir(dist_dir) if os.path.isdir(os.path.join(dist_dir, sub_dir))]
-            if len(sub_dirs) == 0:
-                raise Exception("Could not find a packaged distribution of CALRA! " +
-                                "(try building CARLA with the \"make package\" " +
-                                "command in ${CARLA_ROOT})")
-            sub_dir = sub_dirs[0]
-            carla_path = os.path.join(sub_dir, "LinuxNoEditor", "CarlaUE4.sh")
+            # if not os.path.isdir(dist_dir):
+            #     raise Exception("Expected to find directory \"Dist\" under ${CARLA_ROOT}!")
+            # sub_dirs = [os.path.join(dist_dir, sub_dir) for sub_dir in os.listdir(dist_dir) if os.path.isdir(os.path.join(dist_dir, sub_dir))]
+            # if len(sub_dirs) == 0:
+            #     raise Exception("Could not find a packaged distribution of CALRA! " +
+            #                     "(try building CARLA with the \"make package\" " +
+            #                     "command in ${CARLA_ROOT})")
+            # sub_dir = sub_dirs[0]
+            carla_path = os.path.join(dist_dir, "CarlaUE4.sh")
             launch_command = [carla_path]
             launch_command += ["Town07"]
             if synchronous: launch_command += ["-benchmark"]

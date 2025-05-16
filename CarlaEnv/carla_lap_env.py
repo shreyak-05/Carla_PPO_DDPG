@@ -1,4 +1,6 @@
 import os
+os.environ["CARLA_ROOT"] = r"C:\Users\Smith\Desktop\Carla\WindowsNoEditor"
+
 import subprocess
 import time
 
@@ -46,7 +48,7 @@ class CarlaLapEnv(gym.Env):
     }
 
     def __init__(self, host="127.0.0.1", port=2000,
-                 viewer_res=(1280, 720), obs_res=(1280, 720),
+                 viewer_res=(320, 240), obs_res=(320, 240),
                  reward_fn=None, encode_state_fn=None, 
                  synchronous=True, fps=30, action_smoothing=0.9,
                  start_carla=True):
@@ -96,16 +98,16 @@ class CarlaLapEnv(gym.Env):
         if start_carla:
             if "CARLA_ROOT" not in os.environ:
                 raise Exception("${CARLA_ROOT} has not been set!")
-            dist_dir = os.path.join(os.environ["CARLA_ROOT"], "Dist")
-            if not os.path.isdir(dist_dir):
-                raise Exception("Expected to find directory \"Dist\" under ${CARLA_ROOT}!")
-            sub_dirs = [os.path.join(dist_dir, sub_dir) for sub_dir in os.listdir(dist_dir) if os.path.isdir(os.path.join(dist_dir, sub_dir))]
-            if len(sub_dirs) == 0:
-                raise Exception("Could not find a packaged distribution of CALRA! " +
-                                "(try building CARLA with the \"make package\" " +
-                                "command in ${CARLA_ROOT})")
-            sub_dir = sub_dirs[0]
-            carla_path = os.path.join(sub_dir, "LinuxNoEditor", "CarlaUE4.sh")
+            dir = os.path.join(os.environ["CARLA_ROOT"])
+            # if not os.path.isdir(dist_dir):
+            #     raise Exception("Expected to find directory \"Dist\" under ${CARLA_ROOT}!")
+            # sub_dirs = [os.path.join(dist_dir, sub_dir) for sub_dir in os.listdir(dist_dir) if os.path.isdir(os.path.join(dist_dir, sub_dir))]
+            # if len(sub_dirs) == 0:
+            #     raise Exception("Could not find a packaged distribution of CALRA! " +
+            #                     "(try building CARLA with the \"make package\" " +
+            #                     "command in ${CARLA_ROOT})")
+            # sub_dir = sub_dirs[0]
+            carla_path = os.path.join(dir, "CarlaUE4.exe")
             launch_command = [carla_path]
             launch_command += ["Town07"]
             if synchronous: launch_command += ["-benchmark"]
@@ -157,7 +159,7 @@ class CarlaLapEnv(gym.Env):
 
             # Get spawn location
             #lap_start_wp = self.world.map.get_waypoint(carla.Location(x=-180.0, y=110))
-            lap_start_wp = self.world.map.get_waypoint(self.world.map.get_spawn_points()[1].location)
+            lap_start_wp = self.world.map.get_waypoint(self.world.map.get_spawn_points()[20].location)
             spawn_transform = lap_start_wp.transform
             spawn_transform.location += carla.Location(z=1.0)
 
@@ -185,8 +187,8 @@ class CarlaLapEnv(gym.Env):
             raise e
 
         # Generate waypoints along the lap
-        self.route_waypoints = compute_route_waypoints(self.world.map, lap_start_wp, lap_start_wp, resolution=1.0,
-                                                       plan=[RoadOption.STRAIGHT] + [RoadOption.RIGHT] * 2 + [RoadOption.STRAIGHT] * 5)
+        self.route_waypoints = compute_route_waypoints(self.world.map, lap_start_wp, lap_start_wp, resolution=5.0,
+                                                       plan=[RoadOption.STRAIGHT] *20,max_steps=2000)
         self.current_waypoint_index = 0
         self.checkpoint_waypoint_index = 0
 
@@ -223,7 +225,7 @@ class CarlaLapEnv(gym.Env):
             while ticks < self.fps * 2:
                 self.world.tick()
                 try:
-                    self.world.wait_for_tick(seconds=1.0/self.fps + 0.1)
+                    # self.world.wait_for_tick(seconds=1.0/self.fps + 0.1)
                     ticks += 1
                 except:
                     pass
@@ -342,7 +344,7 @@ class CarlaLapEnv(gym.Env):
             self.clock.tick()
             while True:
                 try:
-                    self.world.wait_for_tick(seconds=1.0/self.fps + 0.1)
+                    # self.world.wait_for_tick(seconds=1.0/self.fps + 0.1)
                     break
                 except:
                     # Timeouts happen occasionally for some reason, however, they seem to be fine to ignore

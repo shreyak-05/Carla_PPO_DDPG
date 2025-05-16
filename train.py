@@ -3,7 +3,9 @@ import random
 import shutil
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
 
 from vae_common import create_encode_state_fn, load_vae
 from ppo import PPO
@@ -65,7 +67,7 @@ def train(params, start_carla=True, restart=False):
     print("")
 
     # Create state encoding fn
-    measurements_to_include = set(["steer", "throttle", "speed"])
+    measurements_to_include = set(["steer", "throttle", "speed"]) 
     encode_state_fn = create_encode_state_fn(vae, measurements_to_include)
 
     # Create env
@@ -232,7 +234,7 @@ if __name__ == "__main__":
     parser.add_argument("--horizon", type=int, default=128, help="Number of steps to simulate per training step")
     parser.add_argument("--num_epochs", type=int, default=3, help="Number of PPO training epochs per traning step")
     parser.add_argument("--batch_size", type=int, default=32, help="Epoch batch size")
-    parser.add_argument("--num_episodes", type=int, default=0, help="Number of episodes to train for (0 or less trains forever)")
+    parser.add_argument("--num_episodes", type=int, default=300, help="Number of episodes to train for (0 or less trains forever)")
 
     # VAE parameters
     parser.add_argument("--vae_model", type=str,

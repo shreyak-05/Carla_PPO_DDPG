@@ -1,4 +1,6 @@
 import os
+os.environ["CARLA_ROOT"] = r"C:\Users\Smith\Desktop\Carla\WindowsNoEditor"
+
 import subprocess
 import time
 
@@ -46,7 +48,7 @@ class CarlaRouteEnv(gym.Env):
     }
 
     def __init__(self, host="127.0.0.1", port=2000,
-                 viewer_res=(1280, 720), obs_res=(1280, 720),
+                 viewer_res=(320, 240), obs_res=(320, 240),
                  reward_fn=None, encode_state_fn=None,
                  synchronous=True, fps=30, action_smoothing=0.9,
                  start_carla=True):
@@ -136,11 +138,11 @@ class CarlaRouteEnv(gym.Env):
         self.action_space = gym.spaces.Box(np.array([-1, 0]), np.array([1, 1]), dtype=np.float32) # steer, throttle
         self.observation_space = gym.spaces.Box(low=0.0, high=1.0, shape=(*obs_res, 3), dtype=np.float32)
         self.metadata["video.frames_per_second"] = self.fps = self.average_fps = fps
-        self.spawn_point = 1
+        self.spawn_point = 30
         self.action_smoothing = action_smoothing
         self.encode_state_fn = (lambda x: x) if not callable(encode_state_fn) else encode_state_fn
         self.reward_fn = (lambda x: 0) if not callable(reward_fn) else reward_fn
-        self.max_distance = 3000 # m
+        self.max_distance = 1000 # m
 
         self.world = None
         try:
@@ -148,16 +150,20 @@ class CarlaRouteEnv(gym.Env):
             self.client = carla.Client(host, port)
             self.client.set_timeout(60.0)
 
-            # Create world wrapper
+            # # Force load Town07
+            # self.client.load_world("Town10HD_Opt")
             self.world = World(self.client)
 
             if self.synchronous:
                 settings = self.world.get_settings()
                 settings.synchronous_mode = True
                 self.world.apply_settings(settings)
+            actors = self.world.get_actors().filter('*vehicle*')
+            for actor in actors:
+                actor.destroy()
 
             # Create vehicle and attach camera to it
-            self.vehicle = Vehicle(self.world, self.world.map.get_spawn_points()[0],
+            self.vehicle = Vehicle(self.world, self.world.map.get_spawn_points()[50],
                                    on_collision_fn=lambda e: self._on_collision(e),
                                    on_invasion_fn=lambda e: self._on_invasion(e))
 
@@ -219,7 +225,7 @@ class CarlaRouteEnv(gym.Env):
         
         # Generate waypoints along the lap
         self.start_wp, self.end_wp = [self.world.map.get_waypoint(spawn.location) for spawn in np.random.choice(self.world.map.get_spawn_points(), 2, replace=False)]
-        self.route_waypoints = compute_route_waypoints(self.world.map, self.start_wp, self.end_wp, resolution=1.0)
+        self.route_waypoints = compute_route_waypoints(self.world.map, self.start_wp, self.end_wp, resolution=5.0)
         self.current_waypoint_index = 0
         self.num_routes_completed += 1
         self.vehicle.set_transform(self.start_wp.transform)
@@ -232,7 +238,7 @@ class CarlaRouteEnv(gym.Env):
             while ticks < self.fps * 2:
                 self.world.tick()
                 try:
-                    self.world.wait_for_tick(seconds=1.0/self.fps + 0.1)
+                    # self.world.wait_for_tick(seconds=1.0/self.fps + 0.1)
                     ticks += 1
                 except:
                     pass
@@ -331,7 +337,7 @@ class CarlaRouteEnv(gym.Env):
             self.clock.tick()
             while True:
                 try:
-                    self.world.wait_for_tick(seconds=1.0/self.fps + 0.1)
+                    # self.world.wait_for_tick(seconds=1.0/self.fps + 0.1)
                     break
                 except:
                     # Timeouts happen occationally for some reason, however, they seem to be fine to ignore

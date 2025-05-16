@@ -16,11 +16,7 @@ import carla
 from agents.navigation.controller import VehiclePIDController
 from agents.tools.misc import distance_vehicle, draw_waypoints
 
-
 class RoadOption(Enum):
-    """
-    RoadOption represents the possible topological configurations when moving from a segment of lane to other.
-    """
     VOID = -1
     LEFT = 1
     RIGHT = 2
@@ -28,6 +24,8 @@ class RoadOption(Enum):
     LANEFOLLOW = 4
     CHANGELANELEFT = 5
     CHANGELANERIGHT = 6
+    REVERSE = 7   # ← NEW
+
 
 
 class LocalPlanner(object):
@@ -138,7 +136,7 @@ class LocalPlanner(object):
         self._waypoints_queue.append((self._current_waypoint.next(self._sampling_radius)[0], RoadOption.LANEFOLLOW))
 
         self._target_road_option = RoadOption.LANEFOLLOW
-        # fill waypoint trajectory queue
+
         self._compute_next_waypoints(k=200)
 
     def set_speed(self, speed):
@@ -225,6 +223,12 @@ class LocalPlanner(object):
         # move using PID controllers
         control = self._vehicle_controller.run_step(self._target_speed, self.target_waypoint)
 
+        # Apply reverse control if target is REVERSE
+        if self._target_road_option == RoadOption.REVERSE:
+            control.throttle, control.brake = 0.0, 0.0
+            control.reverse = True
+            control.throttle = 0.5  # or use PID logic for speed in reverse
+
         # purge the queue of obsolete waypoints
         vehicle_transform = self._vehicle.get_transform()
         max_index = -1
@@ -266,27 +270,17 @@ def _retrieve_options(list_waypoints, current_waypoint):
 
 
 def _compute_connection(current_waypoint, next_waypoint):
-    """
-    Compute the type of topological connection between an active waypoint (current_waypoint) and a target waypoint
-    (next_waypoint).
+    n = next_waypoint.transform.rotation.yaw % 360.0
+    c = current_waypoint.transform.rotation.yaw % 360.0
 
-    :param current_waypoint: active waypoint
-    :param next_waypoint: target waypoint
-    :return: the type of topological connection encoded as a RoadOption enum:
-             RoadOption.STRAIGHT
-             RoadOption.LEFT
-             RoadOption.RIGHT
-    """
-    n = next_waypoint.transform.rotation.yaw
-    n = n % 360.0
+    diff_angle = abs(n - c)
+    diff_angle = diff_angle if diff_angle <= 180.0 else 360.0 - diff_angle
 
-    c = current_waypoint.transform.rotation.yaw
-    c = c % 360.0
-
-    diff_angle = (n - c) % 180.0
     if diff_angle < 1.0:
         return RoadOption.STRAIGHT
-    elif diff_angle > 90.0:
+    elif diff_angle > 90.0 and diff_angle < 135.0:
         return RoadOption.LEFT
+    elif diff_angle >= 135.0:
+        return RoadOption.REVERSE
     else:
         return RoadOption.RIGHT

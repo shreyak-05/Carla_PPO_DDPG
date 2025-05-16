@@ -119,7 +119,7 @@ if __name__ == "__main__":
     # Set seeds
     seed = 0
     if isinstance(seed, int):
-        tf.random.set_random_seed(seed)
+        tf.random.set_seed(seed)
         np.random.seed(seed)
         random.seed(seed)
         env.seed(seed)

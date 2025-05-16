@@ -14,7 +14,9 @@ from train_vae import preprocess_rgb_frame
 
 from models import MlpVAE, ConvVAE
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_eager_execution()
+
 
 parser = argparse.ArgumentParser(description="Visualizes the features learned by the VAE")
 parser.add_argument("--model_dir", type=str, required=True)

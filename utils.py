@@ -3,7 +3,8 @@ import types
 import cv2
 import numpy as np
 import scipy.signal
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 
 class VideoRecorder():
@@ -24,13 +25,16 @@ class VideoRecorder():
 
 def build_mlp(x, hidden_sizes=(32,), activation=tf.tanh, output_activation=None):
     for h in hidden_sizes[:-1]:
-        x = tf.layers.dense(x, units=h, activation=activation)
-    return tf.layers.dense(x, units=hidden_sizes[-1], activation=output_activation)
+        # x = tf.layers.dense(x, units=h, activation=activation)
+        x = tf.keras.layers.Dense(units=h, activation=activation)(x)
+    return tf.keras.layers.Dense(units=hidden_sizes[-1], activation=output_activation)(x)
 
 def create_counter_variable(name):
     counter = types.SimpleNamespace()
     counter.var = tf.Variable(0, name=name, trainable=False)
-    counter.inc_op = tf.assign(counter.var, counter.var + 1)
+    # counter.inc_op = tf.assign(counter.var, counter.var + 1)
+    counter.inc_op = counter.var.assign_add(1)
+
     return counter
 
 def create_mean_metrics_from_dict(metrics):

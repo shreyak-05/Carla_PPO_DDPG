@@ -7,7 +7,9 @@ import sys
 
 import numpy as np
 from PIL import Image
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_eager_execution()
+
 import matplotlib.pyplot as plt
 
 from models import ConvVAE, MlpVAE, bce_loss, bce_loss_v2, mse_loss
