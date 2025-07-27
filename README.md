@@ -3,7 +3,6 @@ CARLA PPO Agent (Town07)
 This project uses Proximal Policy Optimization (PPO) to train and evaluate autonomous driving agents in the CARLA simulator, specifically tailored for **Town07**.
 
 ## Prerequisites
-
 - [CARLA Simulator](https://carla.org/) (recommended: version 0.9.13)
 - Python 3.8+
 
